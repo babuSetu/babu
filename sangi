@@ -1,0 +1,247 @@
+////preprocess
+
+import pandas as pd
+df=pd.read_csv(r'Final_data.csv')
+df.shape
+df.describe()
+df.head(10)
+df.columns
+df.groupby('Crop').size()
+x=df.iloc[:,:-1].values #Extracting independent variable:
+y=df.iloc[:,-1].values #Extracting dependent variable:
+import numpy as np
+arr=np.array(df[['Max. Temp','Min Temp','Total Rainfall']])
+df.Crop.nunique()
+df.isna().sum()
+df.isnull().sum()
+df.notnull().sum()
+#df_records_dropped = df.dropna(axis=0, how=&#39;any&#39;,inplace=True)
+  # fill the missing values for a particular coloumn
+#values = {&quot;MSSubClass&quot;: 1.0, &quot;MSZoning&quot;: 100}
+#df5 = df.fillna(value=values)
+df1=df.replace(to_replace = np.nan, value = -99)
+df1=df.drop_duplicates()
+  #df.dropna(inplace=True)
+from sklearn.preprocessing import LabelEncoder
+labelencoder=LabelEncoder()
+df['Crop']=labelencoder.fit_transform(df['Crop'])
+df['District']=labelencoder.fit_transform(df['District'])
+x=df.iloc[:,:-1].values
+y=df.iloc[:,-1].values
+from sklearn import preprocessing
+from sklearn.preprocessing import StandardScaler
+ss=StandardScaler()
+from sklearn.model_selection import train_test_split
+xtrain,ytrain,xtest,ytest=train_test_split(x,y,test_size=(0.2),random_state=0)
+xtrain=ss.fit_transform(xtrain)
+  
+////////////normalise
+  
+from sklearn import preprocessing
+scaler = preprocessing.MinMaxScaler(feature_range=(0, 2))
+norm = scaler.fit_transform(xtrain)
+print(norm)
+norm_data = preprocessing.normalize(xtrain, axis=0)
+  
+  
+  
+  ///simple linear regression
+  
+  import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+model = LinearRegression()
+  x = df[['Min Temp']].values
+y = df['Total Yield'].values
+model.fit(X, y)
+y_pred = model.predict(X)
+mse = mean_squared_error(y, y_pred)
+print("Coefficient (slope):", model.coef_[0])
+print("Intercept:", model.intercept_)
+print("Mean Squared Error (MSE):", mse)
+plt.scatter(X, y, color='blue', label='Actual Data')
+plt.plot(X, y_pred, color='red', linewidth=2, label='Regression Line')
+plt.xlabel('Min Temp')
+plt.ylabel('Total Yield')
+plt.title('Simple Linear Regression')
+plt.legend()
+plt.grid(True)
+plt.show()
+ 
+////////////multilinear regression
+ 
+X = data[['Min Temp', 'Max Temp', 'Total Rainfall']]
+y = data['Total Yield']
+
+# Create a Multiple Linear Regression model
+model = LinearRegression()
+model.fit(X, y)
+
+# Make predictions
+y_pred = model.predict(X)
+
+# Calculate the mean squared error (MSE)
+mse = mean_squared_error(y, y_pred)
+
+# Print the coefficients and intercept of the regression line
+print("Coefficients (slopes):", model.coef_)
+print("Intercept:", model.intercept_)
+print("Mean Squared Error (MSE):", mse)
+  
+  
+  plt.figure(figsize=(12, 6))
+
+# Scatter plot for Min Temp vs. Total Yield
+plt.subplot(1, 3, 1)
+plt.scatter(X['Min Temp'], y, color='blue', label='Actual Data')
+plt.plot(X['Min Temp'], y_pred, color='red', linewidth=2, label='Regression Line')
+plt.xlabel('Min Temp')
+plt.ylabel('Total Yield')
+plt.title('Min Temp vs. Total Yield')
+plt.legend()
+
+# Scatter plot for Max Temp vs. Total Yield
+plt.subplot(1, 3, 2)
+plt.scatter(X['Max Temp'], y, color='blue', label='Actual Data')
+plt.plot(X['Max Temp'], y_pred, color='red', linewidth=2, label='Regression Line')
+plt.xlabel('Max Temp')
+plt.ylabel('Total Yield')
+plt.title('Max Temp vs. Total Yield')
+plt.legend()
+
+# Scatter plot for Total Rainfall vs. Total Yield
+plt.subplot(1, 3, 3)
+plt.scatter(X['Total Rainfall'], y, color='blue', label='Actual Data')
+plt.plot(X['Total Rainfall'], y_pred, color='red', linewidth=2, label='Regression Line')
+plt.xlabel('Total Rainfall')
+plt.ylabel('Total Yield')
+plt.title('Total Rainfall vs. Total Yield')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+  
+  
+  
+//PCA
+  X = data[['Min Temp', 'Max Temp', 'Total Rainfall']]
+  pca = PCA(n_components=2)
+pca_result = pca.fit_transform(X)
+
+# Create a DataFrame with PCA results
+pca_df = pd.DataFrame(data=pca_result, columns=['Principal Component 1', 'Principal Component 2'])
+
+# Concatenate PCA results with the target variable (Total Yield)
+pca_df['Total Yield'] = data['Total Yield']
+
+# Explained variance ratio of each principal component
+explained_var_ratio = pca.explained_variance_ratio_
+
+# Print the explained variance ratio
+print("Explained Variance Ratio of Principal Components:", explained_var_ratio)
+
+# Scatter plot of the first two principal components
+plt.figure(figsize=(8, 6))
+plt.scatter(pca_df['Principal Component 1'], pca_df['Principal Component 2'], c=pca_df['Total Yield'], cmap='viridis')
+plt.colorbar(label='Total Yield')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.title('PCA: First Two Principal Components')
+plt.show()
+  
+  
+  ///pca step by step
+
+from sklearn.preprocessing import StandardScaler
+X = data[['Min Temp', 'Max Temp', 'Total Rainfall']]
+scaler = StandardScaler()
+X_standardized = scaler.fit_transform(X)
+cov_matrix = np.cov(X_standardized, rowvar=False)# Compute the covariance matrix
+eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)# Compute the eigenvalues and eigenvectors
+sorted_indices = np.argsort(eigenvalues)[::-1] # Sort the eigenvalues and eigenvectors in descending order
+eigenvalues = eigenvalues[sorted_indices]
+eigenvectors = eigenvectors[:, sorted_indices]# Decide on the number of principal components to keep
+explained_variance_ratio = eigenvalues / sum(eigenvalues)
+num_components = 2  # For example, keep 2 principal components (can choose based on explained variance ratio)
+selected_eigenvectors = eigenvectors[:, :num_components]
+X_pca = X_standardized.dot(selected_eigenvectors) 
+pca_df = pd.DataFrame(data=X_pca, columns=['Principal Component 1', 'Principal Component 2'])
+pca_df['Total Yield'] = data['Total Yield']
+import matplotlib.pyplot as plt
+plt.scatter(pca_df['Principal Component 1'], pca_df['Principal Component 2'], c=pca_df['Total Yield'], cmap='viridis')
+plt.colorbar(label='Total Yield')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.title('PCA: First Two Principal Components')
+plt.show()
+
+  
+  
+//decission tree
+  from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier
+dtree= DecisionTreeClassifier(criterion = 'entropy')
+dtree.fit(X_train,y_train)
+  tree.plot_tree(dtree)
+  fig, axes = plt.subplots(nrows = 1,ncols = 1,figsize = (4,4), dpi=300)
+tree.plot_tree(dtree, filled=True)
+fig.savefig("decisionTree.png")
+  
+  predictions= dtree.predict(X_test)
+  from sklearn.metrics import classification_report, confusion_matrix
+print(confusion_matrix(y_test,predictions))
+print(classification_report(y_test,predictions))
+  
+  
+  ///
+    
+///confusion matrix 
+  import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import confusion_matrix
+X = df[['Min Temp', 'Max. Temp', 'Total Rainfall']]
+y = df['Total Yield']
+model = LinearRegression()
+model.fit(X, y)
+y_pred = model.predict(X)
+bins = [-1, 500, 1500, float('inf')]
+labels = ['Low', 'Medium', 'High']
+y_categories = pd.cut(y_pred, bins=bins, labels=labels)
+mapping = {'Low': 0, 'Medium': 1, 'High': 2}
+y_encoded = y_categories.map(mapping)
+conf_matrix = confusion_matrix(y, y_encoded)
+print("Confusion Matrix:")
+print(conf_matrix)
+
+  
+  //classification report
+y_pred_categories = pd.cut(y_pred, bins=[-1, 500, 1500, float('inf')], labels=['Low', 'Medium', 'High'])
+from sklearn.metrics import classification_report
+class_report = classification_report(y_categories, y_pred_categories)
+print("Classification Report:")
+print(class_report)
+  
+//precission
+
+from sklearn.metrics import precision_score
+y_pred_numerical = pd.cut(y_pred, bins=[-1, 500, 1500, float('inf')], labels=['Low', 'Medium', 'High']).map(mapping)
+precision_low = precision_score(y_categories.map(mapping), y_pred_numerical, pos_label=0)
+precision_medium = precision_score(y_categories.map(mapping), y_pred_numerical, pos_label=1)
+precision_high = precision_score(y_categories.map(mapping), y_pred_numerical, pos_label=2)
+print("Precision for 'Low' class:", precision_low)
+print("Precision for 'Medium' class:", precision_medium)
+print("Precision for 'High' class:", precision_high)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+//pca version2
+https://colab.research.google.com/drive/14ymKFSo-_LFVq2kWuobBediup1TAcxXs?usp=sharing
+https://colab.research.google.com/drive/1lZLVlArTOoQ8QD5z_QiLxiTn94-1n_Qk?usp=sharing
+
